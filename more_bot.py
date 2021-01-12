@@ -1,3 +1,4 @@
+# импорт дополнительных модулей
 import logging
 import random
 import TenGiphPy
@@ -13,6 +14,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
+# обработчик команд админа
 @dp.message_handler(commands=['admin_more'])
 async def admin_commands(msg: types.Message):
     await msg.answer('/compliment_list\n/error_list')
@@ -25,6 +27,7 @@ async def admin_compliment_list(msg: types.Message):
 async def admin_error_list(msg: types.Message):
     await msg.answer(get_error)
 
+# обработчик команды start
 @dp.message_handler(commands=['start'])
 async def welcome(msg: types.Message):
     key_compliment = ReplyKeyboardMarkup(resize_keyboard=True).add(KeyboardButton('Можно комплимент?'))
@@ -42,6 +45,7 @@ async def help(msg: types.Message):
         '\n\n- комплименты беруться из готового списка', 
         '\n\n- например, если вы отправили ', hcode('#котики'), ', то бот отправит рандомную гифку по этому запросу'), parse_mode=ParseMode.HTML)
 
+# отправка комплиментов в базу данных
 @dp.message_handler(commands=['send_compliment'])
 async def send_compliment(msg: types.Message):
     if msg.text == '/send_compliment':
@@ -52,6 +56,7 @@ async def send_compliment(msg: types.Message):
         compliment_text = ''.join(delete_list.get(ch, ch) for ch in msg.text)
         db_send_compliment(compliment_text)
 
+# отправка ошибок в базу данных
 @dp.message_handler(commands=['send_error'])
 async def send_error(msg: types.Message):
     if msg.text == '/send_error':
@@ -66,14 +71,17 @@ async def send_error(msg: types.Message):
 async def echo(msg: types.Message):
     delete_list = {'#': ''}
     gif_text = ''.join(delete_list.get(ch, ch) for ch in msg.text)
+    # отправка комплимента
     if (msg.text).lower() == 'можно комплимент?':
         await msg.answer(random.choice(get_compliment))
+    # отправка гифки
     elif msg.text == '#' + gif_text:
         try:
             tenor = TenGiphPy.Tenor(TENOR_TOKEN)
             await msg.answer(tenor.random(gif_text))
         except Exception:
             await msg.answer('По вашему запросу ничего не удалось найти(')
+    # изменение раскладки
     else:
         layout_list = {'й': 'q', 'ц': 'w', 'у': 'e', 'к': 'r', 'е': 't', 'н': 'y', 'г': 'u', 'ш': 'i', 'щ': 'o', 'з': 'p', 'х': '[', 
             'ъ': ']', 'ф': 'a', 'ы': 's', 'в': 'd', 'а': 'f', 'п': 'g', 'р': 'h', 'о': 'j', 'л': 'k', 'д': 'l', 'ж': ';', 'э': "'", 'я': 'z', 
