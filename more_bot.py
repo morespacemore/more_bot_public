@@ -10,6 +10,7 @@ from aiogram.types import ParseMode, ReplyKeyboardMarkup, ReplyKeyboardRemove, K
 from settings import API_TOKEN, TENOR_TOKEN
 from mongodb import db_send_compliment, get_compliment, db_send_error, get_error
 
+# подключение к боту
 logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
@@ -38,6 +39,7 @@ async def welcome(msg: types.Message):
         '\n\nЕсли что-то непонятно, отправьте /help', 
         '\n\nЕсли произошла какая-то ошибка, сообщите о ней с помощью /send_error'), parse_mode=ParseMode.HTML, reply_markup=key_compliment)
 
+# обработчик команды help
 @dp.message_handler(commands=['help'])
 async def help(msg: types.Message):
     await msg.answer(text('- например, если вы отправили ', hcode('rfr ltkf&'), '\nто бот изменит это на ', hcode('как дела?'), 
@@ -45,7 +47,7 @@ async def help(msg: types.Message):
         '\n\n- комплименты беруться из готового списка', 
         '\n\n- например, если вы отправили ', hcode('#котики'), ', то бот отправит рандомную гифку по этому запросу'), parse_mode=ParseMode.HTML)
 
-# отправка комплиментов в базу данных
+# отправка комплиментов
 @dp.message_handler(commands=['send_compliment'])
 async def send_compliment(msg: types.Message):
     if msg.text == '/send_compliment':
@@ -54,9 +56,10 @@ async def send_compliment(msg: types.Message):
         await msg.answer('Ваш комплимент скоро будет добален, большое спасибо!')
         delete_list = {'s': '', 'e': '', 'n': '', 'd': '', 'c': '', 'o': '', 'm': '', 'p': '', 'l': '', 'i': '', 't': '', '/': '', '_': ''}
         compliment_text = ''.join(delete_list.get(ch, ch) for ch in msg.text)
+        # добавление в базу данных
         db_send_compliment(compliment_text)
 
-# отправка ошибок в базу данных
+# отправка ошибок
 @dp.message_handler(commands=['send_error'])
 async def send_error(msg: types.Message):
     if msg.text == '/send_error':
@@ -65,8 +68,10 @@ async def send_error(msg: types.Message):
         await msg.answer('Ваша ошибка скоро будет исправлена')
         delete_list = {'s': '', 'e': '', 'n': '', 'd': '', 'r': '', 'o': '', '/': '', '_': ''}
         error_text = ''.join(delete_list.get(ch, ch) for ch in msg.text)
+        # добавление в базу данных
         db_send_error(error_text)
 
+# обработчик остальных сообщений
 @dp.message_handler(content_types=['text'])
 async def echo(msg: types.Message):
     delete_list = {'#': ''}
@@ -109,5 +114,6 @@ async def echo(msg: types.Message):
             layout_text = ''.join(ru_layout_list.get(ch, ch) for ch in msg.text)
             await msg.answer(text(hcode(layout_text)), parse_mode=ParseMode.HTML)
 
+# создание непрерывной работы бота
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
